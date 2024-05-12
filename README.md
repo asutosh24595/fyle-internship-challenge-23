@@ -37,6 +37,13 @@ You will hear back within 48 hours from us via email.
 
 Run `ng serve` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
 
+## Running Unit Tests
+
+1. First of all, go to the coverage folder by using cd coverage
+2. Next, use the command http-server -c-1 -o -p 9875 (make sure to first install http-server by using npm install -g http-server)
+3. It will open an HTML page on the browser, click on the project name and it will show the code coverage report.
+
+
 ## Further help
 
 Visit the [Angular Documentation](https://angular.io/guide/styleguide) to learn more.
