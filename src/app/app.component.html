@@ -1,5 +1,178 @@
-<div class="grid h-screen place-items-center">
-  <div class="font-bold text-3xl">
-    Fyle Internship Challenge
+<nav class="bg-slate-500 p-4">
+  <div class="flex items-center justify-between">
+    <!-- Navbar Brand (if needed) -->
+    <a href="/" class="text-white font-bold">My App</a>
+    <!-- Search Box -->
+    <div class="flex items-end gap-4">
+      <input
+        type="text"
+        [(ngModel)]="username"
+        placeholder="Enter GitHub Username"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      />
+      <button
+        (click)="onSearch()"
+        class="text-white bg-blue-300 hover:bg-blue-700 font-bold py-2 px-4 rounded transition-colors duration-300 ease-in-out"
+      >
+        Search
+      </button>
+    </div>
   </div>
+</nav>
+
+<div class="mt-20 text-center" *ngIf="!userNotFound && didSearch">
+  <div class="flex gap-x-40 items-start" *ngIf="!loadingData">
+    <img class="max-w-xs rounded-full ml-4" [src]="img" alt="profile pic" />
+    <div class="flex flex-col gap-4 text-gray-700 my-4">
+      <h1 class="text-5xl font-serif font-bold">{{ fullname }}</h1>
+      <p class="text-md" *ngIf="bio">{{ bio }}</p>
+      <p class="text-md" *ngIf="location">
+        <i class="bi bi-geo-alt-fill"></i> {{ location }}
+      </p>
+      <p class="text-md" *ngIf="company">Company: {{ company }}</p>
+      <p class="text-md" *ngIf="blog">
+        <i class="bi bi-pencil-square"></i>
+        <a class="text-blue-500 hover:underline" target="_blank" [href]="blog">
+          {{ blog }}</a
+        >
+      </p>
+      <p class="text-md" *ngIf="!twitterLink.includes('/null')">
+        <i class="bi bi-twitter-x"></i>
+        <a
+          class="text-blue-500 hover:underline"
+          target="_blank"
+          [href]="twitterLink"
+        >
+          {{ twitterLink }}</a
+        >
+      </p>
+      <p class="text-md">
+        <i class="bi bi-github"></i>
+        <a
+          class="text-blue-500 hover:underline"
+          target="_blank"
+          [href]="github"
+        >
+          {{ github }}</a
+        >
+      </p>
+    </div>
+  </div>
+</div>
+<div
+  class="mx-8 my-20 flex gap-3 items-center"
+  *ngIf="!userNotFound && didSearch && !loadingData"
+>
+  <label for="pageSize" class="text-gray-700 font-bold mb-2 block"
+    >Page Size:</label
+  >
+  <select
+    id="pageSize"
+    [(ngModel)]="pageSize"
+    (change)="onPageSizeChange()"
+    class="rounded-md border border-gray-300 py-2 px-3 focus:outline-none focus:ring-1 focus:ring-blue-500"
+  >
+    <option value="10">10</option>
+    <option value="25">25</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+</div>
+<div
+  class="mt-20 container flex flex-wrap"
+  *ngIf="!userNotFound && didSearch && !loadingRepos"
+>
+  <div
+    class="bg-slate-200 rounded-lg border-black border-b-2 shadow-md overflow-hidden max-w-md w-1/2 mx-20 flex-row text-left items-center mb-20"
+    *ngFor="let repo of repos; let i = index"
+  >
+    <p class="m-4 text-lg text-blue-500">
+      {{ repo.name }}
+    </p>
+    <p class="m-4 text-sm">{{ repo.description }}</p>
+    <p class="m-4 text-sm" *ngIf="repo.topics.length > 0">
+      <button
+        *ngFor="let topic of repo.topics"
+        class="text-white bg-blue-500 hover:bg-blue-700 font-bold py-1 px-1 rounded-xl mx-1 my-1"
+      >
+        {{ topic }}
+      </button>
+    </p>
+  </div>
+</div>
+<div *ngIf="didSearch && !userNotFound && !loadingRepos && !loadingData && repos.length === 0"  class="flex justify-center mt-8">
+  <div class="bg-white border border-red-500 rounded-lg shadow-lg p-6 text-red-500 mb-10">
+    <h1 class="text-xl font-bold mb-2">No Repositories Found</h1>
+  </div>
+</div>
+<!-- Pagination controls -->
+<div
+  class="text-center"
+  *ngIf="!userNotFound && didSearch && !loadingData && !loadingRepos && repos.length>0"
+>
+  <div class="mt-4 flex justify-center">
+    <button
+      class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 mr-2"
+      [disabled]="currentPage === 1"
+      (click)="onPageChange(currentPage - 1)"
+    >
+      Previous
+    </button>
+
+    <ng-container *ngFor="let pageNumber of getPageNumbers()">
+      <button
+        class="px-2 py-1 bg-blue-200 text-blue-700 rounded-md hover:bg-blue-500 hover:text-white text-md mx-2"
+        [class.font-bold]="pageNumber === currentPage"
+        (click)="onPageChange(pageNumber)"
+      >
+        {{ pageNumber }}
+      </button>
+    </ng-container>
+
+    <button
+      class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+      [disabled]="this.repos.length < this.pageSize"
+      (click)="onPageChange(currentPage + 1)"
+    >
+      Next
+    </button>
+  </div>
+</div>
+<div class="mt-40 flex justify-center text-center" *ngIf="userNotFound && didSearch">
+  <div class="bg-white border border-red-500 rounded-lg shadow-lg p-6 text-red-500 mb-10">
+    <h1 class="text-xl font-bold mb-2">User not found with the given username</h1>
+  </div>
+</div>
+
+<ng-container *ngIf="loadingData && !userNotFound">
+  <div class="flex gap-x-40 items-start">
+    <div class="rounded-full h-80 w-80 bg-gray-300 animate-pulse ml-2"></div>
+    <div class="flex flex-col">
+      <div class="h-8 w-72 bg-gray-300 animate-pulse rounded mb-4"></div>
+      <div class="h-8 w-50 bg-gray-300 animate-pulse rounded mb-4"></div>
+      <div class="h-8 w-60 bg-gray-300 animate-pulse rounded mb-4"></div>
+      <div class="h-8 w-56 bg-gray-300 animate-pulse rounded mb-4"></div>
+      <div class="h-8 w-72 bg-gray-300 animate-pulse rounded mb-4"></div>
+      <div class="h-8 w-64 bg-gray-300 animate-pulse rounded mb-4"></div>
+      <div class="h-8 w-72 bg-gray-300 animate-pulse rounded mb-4"></div>
+    </div>
+  </div>
+  <!-- Skeleton loader for page size selection -->
+  <div class="mx-8 my-20 flex gap-3 items-center">
+    <div class="rounded-md h-10 w-32 bg-gray-300 animate-pulse"></div>
+  </div>
+</ng-container>
+
+<div class="mt-20 container flex flex-wrap">
+  <ng-container *ngIf="!userNotFound && didSearch && loadingRepos">
+    <!-- Skeleton loader for repos -->
+    <div
+      class="bg-slate-200 rounded-lg border-black border-b-2 shadow-md overflow-hidden max-w-md w-1/2 mx-20 flex-row text-left items-center mb-20"
+      *ngFor="let _ of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; let i = index"
+    >
+      <div class="m-4 h-8 w-2/3 bg-gray-300 animate-pulse rounded"></div>
+      <div class="m-4 h-8 w-4/5 bg-gray-300 animate-pulse rounded"></div>
+      <div class="m-4 h-8 w-3/4 bg-gray-300 animate-pulse rounded"></div>
+    </div>
+  </ng-container>
 </div>
